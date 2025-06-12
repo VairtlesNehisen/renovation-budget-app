@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Orçamento para Reforma</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            /* Apenas o 'quote-summary-section' e seus filhos serão visíveis */
+            .quote-summary-section, .quote-summary-section * {
+                visibility: visible;
+            }
+            .quote-summary-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+                box-shadow: none !important; /* Remove sombra na impressão */
+                border: none !important; /* Remove bordas na impressão */
+            }
+            .no-print {
+                display: none !important;
+            }
+            /* Ajustes para a tabela de resumo dentro da impressão */
+            .quote-summary-section table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+            .quote-summary-section th, .quote-summary-section td {
+                border: 1px solid #ccc;
+                padding: 8px;
+                text-align: left;
+            }
+            .quote-summary-section h2, .quote-summary-section h3 {
+                color: #333;
+            }
+            .quote-summary-section .client-summary-data div {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="container mx-auto px-6 py-8 max-w-6xl">
+        <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-lg shadow-lg mb-8 no-print">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl font-bold">Sistema de Orçamento para Reforma</h1>
+                <div class="space-x-2 space-y-2 flex items-center">
+                    <button id="printBtn" class="bg-white text-blue-800 px-2 py-2 rounded-lg hover:bg-gray-100 transition">
+                        <i class="fas fa-print mr-2"></i>Imprimir
+                    </button>
+                    <button id="saveBtn" class="bg-green-500 text-white px-2 py-2 rounded-lg hover:bg-green-600 transition ">
+                        <i class="fas fa-save mr-2"></i>Salvar
+                    </button>
+                     <button id="loadBtn" class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition">
+                        <i class="fas fa-folder-open mr-2"></i>Carregar Orçamento
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <section class="bg-white p-6 rounded-lg shadow-md mb-8 no-print">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Informações do Cliente</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                    <label for="clientName" class="block text-gray-700 mb-1">Nome</label>
+                    <input type="text" id="clientName" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="clientPhone" class="block text-gray-700 mb-1">Telefone</label>
+                    <input type="tel" id="clientPhone" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="clientEmail" class="block text-gray-700 mb-1">Email</label>
+                    <input type="email" id="clientEmail" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="quoteDate" class="block text-gray-700 mb-1">Data do Orçamento</label>
+                    <input type="date" id="quoteDate" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white p-6 rounded-lg shadow-md mb-8 no-print">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Medidas do Apartamento</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="totalArea" class="block text-gray-700 mb-1">Área Total (m²)</label>
+                    <input type="number" id="totalArea" min="0" step="0.1" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="bathroomCount" class="block text-gray-700 mb-1">Número de Banheiros</label>
+                    <input type="number" id="bathroomCount" min="0" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label for="roomCount" class="block text-gray-700 mb-1">Número de Cômodos</label>
+                    <input type="number" id="roomCount" min="0" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-8 no-print">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Itens do Orçamento</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Banheiro</h3>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="bathroomToggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    
+                    <div id="bathroomOptions" class="hidden space-y-4">
+                        <div>
+                            <label for="bathroomFinish" class="block text-gray-700 mb-1">Nível de Acabamento</label>
+                            <select id="bathroomFinish" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="standard">Padrão (€ 1.200/m²)</option>
+                                <option value="premium">Premium (€ 1.800/m²)</option>
+                                <option value="luxo">Luxo (€ 2.500/m²)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="bathroomArea" class="block text-gray-700 mb-1">Área por Banheiro (m²)</label>
+                            <input type="number" id="bathroomArea" min="0" step="0.1" value="5" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-1">Itens Inclusos</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" checked class="form-checkbox h-5 w-5 text-blue-600">
+                                    <span class="ml-2">Porcelanato</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" checked class="form-checkbox h-5 w-5 text-blue-600">
+                                    <span class="ml-2">Louça Sanitária</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" checked class="form-checkbox h-5 w-5 text-blue-600">
+                                    <span class="ml-2">Metais</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" checked class="form-checkbox h-5 w-5 text-blue-600">
+                                    <span class="ml-2">Revestimento</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Rodapé</h3>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="baseboardToggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    
+                    <div id="baseboardOptions" class="hidden space-y-4">
+                        <div>
+                            <label for="baseboardFinish" class="block text-gray-700 mb-1">Nível de Acabamento</label>
+                            <select id="baseboardFinish" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="standard">Padrão (€ 25/m)</option>
+                                <option value="premium">Premium (€ 40/m)</option>
+                                <option value="luxo">Luxo (€ 65/m)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="baseboardLength" class="block text-gray-700 mb-1">Comprimento Total (m)</label>
+                            <input type="number" id="baseboardLength" min="0" step="0.1" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="baseboardHeight" class="block text-gray-700 mb-1">Altura (cm)</label>
+                            <select id="baseboardHeight" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="8">8 cm</option>
+                                <option value="10" selected>10 cm</option>
+                                <option value="12">12 cm</option>
+                                <option value="15">15 cm</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Pintura</h3>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="paintingToggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    
+                    <div id="paintingOptions" class="hidden space-y-4">
+                        <div>
+                            <label for="paintingFinish" class="block text-gray-700 mb-1">Nível de Acabamento</label>
+                            <select id="paintingFinish" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="standard">Padrão (€ 25/m²)</option>
+                                <option value="premium">Premium (€ 35/m²)</option>
+                                <option value="luxo">Luxo (€ 50/m²)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="paintingArea" class="block text-gray-700 mb-1">Área a Pintar (m²)</label>
+                            <input type="number" id="paintingArea" min="0" step="0.1" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-1">Tipo de Pintura</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="paintingType" checked class="form-radio h-5 w-5 text-blue-600" value="walls">
+                                    <span class="ml-2">Paredes</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="paintingType" class="form-radio h-5 w-5 text-blue-600" value="ceiling">
+                                    <span class="ml-2">Teto</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="paintingType" class="form-radio h-5 w-5 text-blue-600" value="both">
+                                    <span class="ml-2">Paredes e Teto</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Cozinha</h3>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="kitchenToggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    
+                    <div id="kitchenOptions" class="hidden space-y-4">
+                        <div>
+                            <label for="kitchenFinish" class="block text-gray-700 mb-1">Nível de Acabamento</label>
+                            <select id="kitchenFinish" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="standard">Padrão (€ 1.500/m²)</option>
+                                <option value="premium">Premium (€ 2.200/m²)</option>
+                                <option value="luxo">Luxo (€ 3.500/m²)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="kitchenArea" class="block text-gray-700 mb-1">Área (m²)</label>
+                            <input type="number" id="kitchenArea" min="0" step="0.1" value="8" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 mb-1">Itens Inclusos</label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" checked class="form-checkbox h-5 w-5 text-blue-600">
+                                    <span class="ml-2">Armários</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" checked class="form-checkbox h-5 w-5 text-blue-600">
+                                    <span class="ml-2">Bancada</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" checked class="form-checkbox h-5 w-5 text-blue-600">
+                                    <span class="ml-2">Pia</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" checked class="form-checkbox h-5 w-5 text-blue-600">
+                                    <span class="ml-2">Torneira</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Portas Internas</h3>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="doorsToggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    
+                    <div id="doorsOptions" class="hidden space-y-4">
+                        <div>
+                            <label for="doorsFinish" class="block text-gray-700 mb-1">Nível de Acabamento</label>
+                            <select id="doorsFinish" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="standard">Padrão (€ 450/un)</option>
+                                <option value="premium">Premium (€ 650/un)</option>
+                                <option value="luxo">Luxo (€ 900/un)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="doorsCount" class="block text-gray-700 mb-1">Quantidade</label>
+                            <input type="number" id="doorsCount" min="0" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="doorsLock" class="block text-gray-700 mb-1">Tipo de Fechadura</label>
+                            <select id="doorsLock" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="simple">Simples</option>
+                                <option value="medium" selected>Média</option>
+                                <option value="high">Alta</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Piso SPC</h3>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="floorToggle" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    
+                    <div id="floorOptions" class="hidden space-y-4">
+                        <div>
+                            <label for="floorFinish" class="block text-gray-700 mb-1">Nível de Acabamento</label>
+                            <select id="floorFinish" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="standard">Padrão (€ 80/m²)</option>
+                                <option value="premium">Premium (€ 120/m²)</option>
+                                <option value="luxo">Luxo (€ 180/m²)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="floorArea" class="block text-gray-700 mb-1">Área (m²)</label>
+                            <input type="number" id="floorArea" min="0" step="0.1" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="floorPattern" class="block text-gray-700 mb-1">Padrão do Piso</label>
+                            <select id="floorPattern" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="wood">Madeira</option>
+                                <option value="stone" selected>Pedra</option>
+                                <option value="abstract">Abstrato</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="bg-white p-6 rounded-lg shadow-md mb-8 quote-summary-section">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Resumo do Orçamento</h2>
+            
+            <div id="clientSummary" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                <h3 class="text-xl font-semibold text-gray-700 mb-3">Informações do Cliente:</h3>
+                <div class="client-summary-data grid grid-cols-1 md:grid-cols-2 gap-x-4">
+                    <div><strong>Nome:</strong> <span id="summaryClientName"></span></div>
+                    <div><strong>Telefone:</strong> <span id="summaryClientPhone"></span></div>
+                    <div><strong>Email:</strong> <span id="summaryClientEmail"></span></div>
+                    <div><strong>Data do Orçamento:</strong> <span id="summaryQuoteDate"></span></div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white border border-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descrição</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Unitário</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="quoteItems" class="divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="5" class="px-6 py-4 text-center text-gray-500">Nenhum item selecionado ainda</td>
+                        </tr>
+                    </tbody>
+                    <tfoot class="bg-gray-50 font-semibold">
+                        <tr>
+                            <td colspan="4" class="px-6 py-3 text-right">Total do Orçamento:</td>
+                            <td id="totalQuote" class="px-6 py-3">€ 0,00</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            <div class="mt-6 flex justify-end no-print">
+                <button id="calculateBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition">
+                    <i class="fas fa-calculator mr-2"></i>Calcular Orçamento
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
